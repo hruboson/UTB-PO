@@ -117,16 +117,38 @@ namespace SolidSnakeCode
             // check body-head collision
             foreach (Position b in body)
             {
-                //Console.SetCursorPosition(xposlijf[i], yposlijf[i]);
-                //Console.Write("■");
                 if (b == head)
                 {
                     this.gameOver = true;
                 }
             }
+
             // check player input
-            // instantiate new berry
-            // count score
+			if (Console.KeyAvailable)
+			{
+				ConsoleKeyInfo toets = Console.ReadKey(true);
+				//Console.WriteLine(toets.Key.ToString());
+				if (toets.Key.Equals(ConsoleKey.UpArrow) && movement != "DOWN" && buttonpressed == false)
+				{
+					movement = "UP";
+					buttonpressed = true;
+				}
+				if (toets.Key.Equals(ConsoleKey.DownArrow) && movement != "UP" && buttonpressed == false)
+				{
+					movement = "DOWN";
+					buttonpressed = true;
+				}
+				if (toets.Key.Equals(ConsoleKey.LeftArrow) && movement != "RIGHT" && buttonpressed == false)
+				{
+					movement = "LEFT";
+					buttonpressed = true;
+				}
+				if (toets.Key.Equals(ConsoleKey.RightArrow) && movement != "LEFT" && buttonpressed == false)
+				{
+					movement = "RIGHT";
+					buttonpressed = true;
+				}
+			}
 
             if (gameOver)
             {
@@ -291,11 +313,11 @@ namespace SolidSnakeCode
                     {
                         gameover = true;
                     }
-                }
+                }/////
                 if (gameover == true)
                 {
                     break;
-                }
+                }/////
                 Console.SetCursorPosition(hoofd.xpos, hoofd.ypos);
                 Console.ForegroundColor = hoofd.color;
                 Console.Write("■");
