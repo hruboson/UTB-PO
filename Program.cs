@@ -71,6 +71,7 @@ namespace SolidSnakeCode
 
         int length = 5; // initial snake length
         bool gameOver = false;
+		bool buttonpressed = false;
 
         DIRECTION movement = DIRECTION.UP; // initial snake movement
 
@@ -126,29 +127,52 @@ namespace SolidSnakeCode
             // check player input
 			if (Console.KeyAvailable)
 			{
+				//! if (time.Subtract(timeDiff).TotalMilliseconds > 500) { return true; }
 				ConsoleKeyInfo toets = Console.ReadKey(true);
 				//Console.WriteLine(toets.Key.ToString());
-				if (toets.Key.Equals(ConsoleKey.UpArrow) && movement != "DOWN" && buttonpressed == false)
+				if (toets.Key.Equals(ConsoleKey.UpArrow) && this.movement != DIRECTION.DOWN && this.buttonpressed == false)
 				{
-					movement = "UP";
-					buttonpressed = true;
+					this.movement = DIRECTION.UP;
+					this.buttonpressed = true;
 				}
-				if (toets.Key.Equals(ConsoleKey.DownArrow) && movement != "UP" && buttonpressed == false)
+				if (toets.Key.Equals(ConsoleKey.DownArrow) && this.movement != DIRECTION.UP && this.buttonpressed == false)
 				{
-					movement = "DOWN";
-					buttonpressed = true;
+					this.movement = DIRECTION.DOWN;
+					this.buttonpressed = true;
 				}
-				if (toets.Key.Equals(ConsoleKey.LeftArrow) && movement != "RIGHT" && buttonpressed == false)
+				if (toets.Key.Equals(ConsoleKey.LeftArrow) && this.movement != DIRECTION.RIGHT && this.buttonpressed == false)
 				{
-					movement = "LEFT";
-					buttonpressed = true;
+					this.movement = DIRECTION.LEFT;
+					this.buttonpressed = true;
 				}
-				if (toets.Key.Equals(ConsoleKey.RightArrow) && movement != "LEFT" && buttonpressed == false)
+				if (toets.Key.Equals(ConsoleKey.RightArrow) && this.movement != DIRECTION.LEFT && this.buttonpressed == false)
 				{
-					movement = "RIGHT";
-					buttonpressed = true;
+					this.movement = DIRECTION.RIGHT;
+					this.buttonpressed = true;
 				}
 			}
+
+			this.body.Add(head.pos);
+			switch (this.movement)
+			{
+				case "UP":
+					this.head.pos.y--;
+					break;
+				case "DOWN":
+					this.head.pos.y++;
+					break;
+				case "LEFT":
+					this.head.pos.x--;
+					break;
+				case "RIGHT":
+					this.head.pos.x++;
+					break;
+			}
+			if (this.body.Count() > this.score)
+			{
+				this.body.RemoveAt(0);
+			}
+
 
             if (gameOver)
             {
@@ -198,19 +222,21 @@ namespace SolidSnakeCode
 
         public void moveToRandomPos()
         {
-            pos = new Position(randomGenerator.Next(0, maxWidth), randomGenerator.Next(maxHeight));
+            pos = new Position(randomGenerator.Next(0, maxWidth), randomGenerator.Next(0, maxHeight));
         }
 
         public Berry(Window window)
         {
             this.maxWidth = window.width;
             this.maxHeight = window.height;
-            pos = new Position(randomGenerator.Next(0, window.width), randomGenerator.Next(window.height));
+            pos = new Position(randomGenerator.Next(0, window.width), randomGenerator.Next(0, window.height));
         }
 
         public void draw()
         {
-            
+			Console.SetCursorPosition(this.pos.x, this.pos.y);
+			Console.ForegroundColor = ConsoleColor.Cyan;
+			Console.Write("■");
         }
 
         public bool act()
@@ -355,9 +381,9 @@ namespace SolidSnakeCode
                             buttonpressed = true;
                         }
                     }
-                }
-                xposlijf.Add(hoofd.xpos);
-                yposlijf.Add(hoofd.ypos);
+                }////////
+                xposlijf.Add(hoofd.xpos);////
+                yposlijf.Add(hoofd.ypos);////
                 switch (movement)
                 {
                     case "UP":
@@ -372,12 +398,12 @@ namespace SolidSnakeCode
                     case "RIGHT":
                         hoofd.xpos++;
                         break;
-                }
+                }////
                 if (xposlijf.Count() > score)
                 {
                     xposlijf.RemoveAt(0);
                     yposlijf.RemoveAt(0);
-                }
+                }////
             }
             Console.SetCursorPosition(screenwidth / 5, screenheight / 2);
             Console.WriteLine("Game over, Score: " + score);
