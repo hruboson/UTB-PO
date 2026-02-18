@@ -90,11 +90,6 @@ namespace SolidSnakeCode
             this.head = new Position(x, y);
 
             this.body = new List<Position>();
-            for (int i = 1; i < length; i++)
-            {
-                Position newPosition = new Position(x, y + i);
-                body.Add(newPosition);
-            }
 
             currentBerry = new Berry(window);
         }
@@ -158,15 +153,15 @@ namespace SolidSnakeCode
 			// Move body
 			body.Add(new Position(head.x, head.y));
 
-			// Berry eaten
 			if (newHead == currentBerry.pos)
 			{
-				//body.Add(new Position(head.x, head.y)); // grow
+				length++;                     // grow
 				currentBerry.moveToRandomPos();
 			}
-			else
+
+			if (body.Count >= length)
 			{
-				if (body.Count > 0) body.RemoveAt(0);
+				body.RemoveAt(0);
 			}
 
 			// Apply movement
@@ -312,7 +307,6 @@ namespace SolidSnakeCode
 					}
                     obj.draw();
                 }
-
 
 				double frameTime = (DateTime.Now - startTime).TotalMilliseconds;
 				int delay = (int)(1000 / FPS - frameTime);
@@ -460,7 +454,7 @@ namespace SolidSnakeCode
         static void Main(string[] args)
         {
             Engine e = new Engine();
-            e.loop();
+            e.run();
         }
     }
 }
