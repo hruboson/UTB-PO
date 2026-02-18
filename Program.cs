@@ -277,7 +277,7 @@ namespace SolidSnakeCode
 
         private static List<Object> objects = new List<Object>();
 
-        private static int FPS = 2;
+        private static int FPS = 10;
 
         public Engine()
         {
@@ -454,7 +454,7 @@ namespace SolidSnakeCode
         static void Main(string[] args)
         {
             Engine e = new Engine();
-            e.run();
+            e.loop();
         }
     }
 }
