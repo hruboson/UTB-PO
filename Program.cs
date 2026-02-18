@@ -161,7 +161,7 @@ namespace SolidSnakeCode
 			// Berry eaten
 			if (newHead == currentBerry.pos)
 			{
-				body.Add(new Position(head.x, head.y)); // grow
+				//body.Add(new Position(head.x, head.y)); // grow
 				currentBerry.moveToRandomPos();
 			}
 			else
@@ -251,7 +251,7 @@ namespace SolidSnakeCode
         {
             this.maxWidth = window.width;
             this.maxHeight = window.height;
-            pos = new Position(randomGenerator.Next(0, window.width), randomGenerator.Next(0, window.height));
+            pos = new Position(randomGenerator.Next(0, window.width - 1), randomGenerator.Next(0, window.height - 1));
         }
 
         public void draw()
