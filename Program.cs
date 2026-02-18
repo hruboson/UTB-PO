@@ -71,16 +71,18 @@ namespace SolidSnakeCode
     {
         private Window window;
 
-        int length = 5; // initial snake length
-        bool gameOver = false;
-        bool buttonpressed = false;
+		private int length = 5; // initial snake length
+        private bool gameOver = false;
+        private bool buttonPressed = false;
 
-        DIRECTION movement = DIRECTION.UP; // initial snake movement
+        private DIRECTION movement = DIRECTION.UP; // initial snake movement
 
-        Position head;
-        List<Position> body;
+        private Position head;
+        private List<Position> body;
 
-        Berry currentBerry;
+        private Berry currentBerry;
+
+	    private DateTime lastMoveTime = DateTime.Now;
 
         public Snake(int x, int y, Window window)
         {
@@ -88,10 +90,10 @@ namespace SolidSnakeCode
             this.head = new Position(x, y);
 
             this.body = new List<Position>();
-            for (int i = 0; i < length; i++)
+            for (int i = 1; i < length; i++)
             {
-                Position newPosition = new Position(this.head.x, this.head.y - i);
-                body.Append(newPosition);
+                Position newPosition = new Position(x, y + i);
+                body.Add(newPosition);
             }
 
             currentBerry = new Berry(window);
@@ -99,90 +101,108 @@ namespace SolidSnakeCode
 
         public void draw()
         {
+			// Draw body
+			Console.ForegroundColor = ConsoleColor.Green;
+			foreach (Position p in body)
+			{
+				Console.SetCursorPosition(p.x, p.y);
+				Console.Write("■");
+			}
 
+			// Draw head
+			Console.ForegroundColor = ConsoleColor.Red;
+			Console.SetCursorPosition(head.x, head.y);
+			Console.Write("■");
+
+			currentBerry.draw();
         }
 
-        public bool act()
-        {
-            // check wall collision
-            if (this.head.x == window.width - 1 || this.head.x == 0 || this.head.y == window.height - 1 || this.head.y == 0)
-            {
-                this.gameOver = true;
-            }
+		
+		public bool act()
+		{
+			if ((DateTime.Now - lastMoveTime).TotalMilliseconds < 500)
+			{
+				HandleInput();
+				return true;
+			}
 
-            // berry eaten
-            if (currentBerry.pos.x == this.head.x && currentBerry.pos.y == this.head.y)
-            {
-                this.length++;
-                currentBerry.moveToRandomPos();
-            }
+			lastMoveTime = DateTime.Now;
+			buttonPressed = false;
 
-            // check body-head collision
-            foreach (Position b in body)
-            {
-                if (b == head)
-                {
-                    this.gameOver = true;
-                }
-            }
+			HandleInput();
 
-            // check player input
-            if (Console.KeyAvailable)
-            {
-                //! if (time.Subtract(timeDiff).TotalMilliseconds > 500) { return true; }
-                ConsoleKeyInfo toets = Console.ReadKey(true);
-                //Console.WriteLine(toets.Key.ToString());
-                if (toets.Key.Equals(ConsoleKey.UpArrow) && this.movement != DIRECTION.DOWN && this.buttonpressed == false)
-                {
-                    this.movement = DIRECTION.UP;
-                    this.buttonpressed = true;
-                }
-                if (toets.Key.Equals(ConsoleKey.DownArrow) && this.movement != DIRECTION.UP && this.buttonpressed == false)
-                {
-                    this.movement = DIRECTION.DOWN;
-                    this.buttonpressed = true;
-                }
-                if (toets.Key.Equals(ConsoleKey.LeftArrow) && this.movement != DIRECTION.RIGHT && this.buttonpressed == false)
-                {
-                    this.movement = DIRECTION.LEFT;
-                    this.buttonpressed = true;
-                }
-                if (toets.Key.Equals(ConsoleKey.RightArrow) && this.movement != DIRECTION.LEFT && this.buttonpressed == false)
-                {
-                    this.movement = DIRECTION.RIGHT;
-                    this.buttonpressed = true;
-                }
-            }
+			// Compute new head position
+			Position newHead = new Position(head.x, head.y);
 
-            this.body.Add(this.head);
-            switch (this.movement)
-            {
-                case DIRECTION.UP:
-                    this.head.y--;
-                    break;
-                case DIRECTION.DOWN:
-                    this.head.y++;
-                    break;
-                case DIRECTION.LEFT:
-                    this.head.x--;
-                    break;
-                case DIRECTION.RIGHT:
-                    this.head.x++;
-                    break;
-            }
-            if (this.body.Count() > this.length)
-            {
-                this.body.RemoveAt(0);
-            }
+			switch (movement)
+			{
+				case DIRECTION.UP: newHead.y--; break;
+				case DIRECTION.DOWN: newHead.y++; break;
+				case DIRECTION.LEFT: newHead.x--; break;
+				case DIRECTION.RIGHT: newHead.x++; break;
+			}
+
+			// Wall collision
+			if (newHead.x <= 0 || newHead.x >= window.width - 1 ||
+				newHead.y <= 0 || newHead.y >= window.height - 1)
+			{
+				return false;
+			}
+
+			// Self collision
+			foreach (Position p in body)
+			{
+				if (p == newHead) return false;
+			}
+
+			// Move body
+			body.Add(new Position(head.x, head.y));
+
+			// Berry eaten
+			if (newHead == currentBerry.pos)
+			{
+				body.Add(new Position(head.x, head.y)); // grow
+				currentBerry.moveToRandomPos();
+			}
+			else
+			{
+				if (body.Count > 0) body.RemoveAt(0);
+			}
+
+			// Apply movement
+			head = newHead;
+
+			return true;
+		}
 
 
-            if (gameOver)
-            {
-                return false;
-            }
+		private void HandleInput()
+		{
+			if (!Console.KeyAvailable) return;
 
-            return true;
-        }
+			ConsoleKeyInfo key = Console.ReadKey(true);
+
+			if (key.Key == ConsoleKey.UpArrow && movement != DIRECTION.DOWN && !buttonPressed)
+			{
+				movement = DIRECTION.UP;
+				buttonPressed = true;
+			}
+			if (key.Key == ConsoleKey.DownArrow && movement != DIRECTION.UP && !buttonPressed)
+			{
+				movement = DIRECTION.DOWN;
+				buttonPressed = true;
+			}
+			if (key.Key == ConsoleKey.LeftArrow && movement != DIRECTION.RIGHT && !buttonPressed)
+			{
+				movement = DIRECTION.LEFT;
+				buttonPressed = true;
+			}
+			if (key.Key == ConsoleKey.RightArrow && movement != DIRECTION.LEFT && !buttonPressed)
+			{
+				movement = DIRECTION.RIGHT;
+				buttonPressed = true;
+			}
+		}
     }
 
     class Wall : Object
@@ -224,7 +244,7 @@ namespace SolidSnakeCode
 
         public void moveToRandomPos()
         {
-            pos = new Position(randomGenerator.Next(0, maxWidth), randomGenerator.Next(0, maxHeight));
+            pos = new Position(randomGenerator.Next(0, maxWidth - 1), randomGenerator.Next(0, maxHeight - 1));
         }
 
         public Berry(Window window)
@@ -259,11 +279,9 @@ namespace SolidSnakeCode
         private Window window = new Window();
         private Snake player;
         private Wall wall;
-        private DateTime timer = DateTime.Now;
 
         private static List<Object> objects = new List<Object>();
 
-        System.Timers.Timer engineTime = new System.Timers.Timer(1000/FPS);
         private static int FPS = 2;
 
         public Engine()
@@ -271,28 +289,35 @@ namespace SolidSnakeCode
             wall = new Wall(window);
             objects.Add(wall);
 
-            //player = new Snake(window.width / 2, window.height / 2, window);
-            //objects.Append(player);
+            player = new Snake(window.width / 2, window.height / 2, window);
+            objects.Add(player);
         }
 
-        public static void loop()
+        public void loop()
         {
-            DateTime startTime = DateTime.Now;
-            DateTime fireTime = DateTime.Now;
-
-
             while (true) {
-                fireTime = DateTime.Now;
-                if(fireTime.Subtract(startTime).TotalMilliseconds > 1000 / FPS) { break;  }
+	            DateTime startTime = DateTime.Now;
+
+                Console.Clear();
 
                 foreach (var obj in objects)
                 {
-                    if (!obj.act()) { return; }
+                    if (!obj.act()) { 
+						Console.Clear();
+
+						Console.SetCursorPosition(window.width / 5, window.height / 2);
+						Console.WriteLine("Game Over!");
+						Console.ReadKey();
+						return; 
+					}
                     obj.draw();
                 }
 
-                Console.Clear();
-                startTime = DateTime.Now;
+
+				double frameTime = (DateTime.Now - startTime).TotalMilliseconds;
+				int delay = (int)(1000 / FPS - frameTime);
+
+				if (delay > 0) Thread.Sleep(delay);
             }
         }
 
@@ -435,7 +460,7 @@ namespace SolidSnakeCode
         static void Main(string[] args)
         {
             Engine e = new Engine();
-            Engine.loop();
+            e.loop();
         }
     }
 }
