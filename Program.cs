@@ -1,11 +1,13 @@
-﻿using System;
+using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using static System.Formats.Asn1.AsnWriter;
 
 ///█ ■
@@ -71,7 +73,7 @@ namespace SolidSnakeCode
 
         int length = 5; // initial snake length
         bool gameOver = false;
-		bool buttonpressed = false;
+        bool buttonpressed = false;
 
         DIRECTION movement = DIRECTION.UP; // initial snake movement
 
@@ -86,7 +88,7 @@ namespace SolidSnakeCode
             this.head = new Position(x, y);
 
             this.body = new List<Position>();
-            for(int i = 0; i < length; i++)
+            for (int i = 0; i < length; i++)
             {
                 Position newPosition = new Position(this.head.x, this.head.y - i);
                 body.Append(newPosition);
@@ -125,53 +127,53 @@ namespace SolidSnakeCode
             }
 
             // check player input
-			if (Console.KeyAvailable)
-			{
-				//! if (time.Subtract(timeDiff).TotalMilliseconds > 500) { return true; }
-				ConsoleKeyInfo toets = Console.ReadKey(true);
-				//Console.WriteLine(toets.Key.ToString());
-				if (toets.Key.Equals(ConsoleKey.UpArrow) && this.movement != DIRECTION.DOWN && this.buttonpressed == false)
-				{
-					this.movement = DIRECTION.UP;
-					this.buttonpressed = true;
-				}
-				if (toets.Key.Equals(ConsoleKey.DownArrow) && this.movement != DIRECTION.UP && this.buttonpressed == false)
-				{
-					this.movement = DIRECTION.DOWN;
-					this.buttonpressed = true;
-				}
-				if (toets.Key.Equals(ConsoleKey.LeftArrow) && this.movement != DIRECTION.RIGHT && this.buttonpressed == false)
-				{
-					this.movement = DIRECTION.LEFT;
-					this.buttonpressed = true;
-				}
-				if (toets.Key.Equals(ConsoleKey.RightArrow) && this.movement != DIRECTION.LEFT && this.buttonpressed == false)
-				{
-					this.movement = DIRECTION.RIGHT;
-					this.buttonpressed = true;
-				}
-			}
+            if (Console.KeyAvailable)
+            {
+                //! if (time.Subtract(timeDiff).TotalMilliseconds > 500) { return true; }
+                ConsoleKeyInfo toets = Console.ReadKey(true);
+                //Console.WriteLine(toets.Key.ToString());
+                if (toets.Key.Equals(ConsoleKey.UpArrow) && this.movement != DIRECTION.DOWN && this.buttonpressed == false)
+                {
+                    this.movement = DIRECTION.UP;
+                    this.buttonpressed = true;
+                }
+                if (toets.Key.Equals(ConsoleKey.DownArrow) && this.movement != DIRECTION.UP && this.buttonpressed == false)
+                {
+                    this.movement = DIRECTION.DOWN;
+                    this.buttonpressed = true;
+                }
+                if (toets.Key.Equals(ConsoleKey.LeftArrow) && this.movement != DIRECTION.RIGHT && this.buttonpressed == false)
+                {
+                    this.movement = DIRECTION.LEFT;
+                    this.buttonpressed = true;
+                }
+                if (toets.Key.Equals(ConsoleKey.RightArrow) && this.movement != DIRECTION.LEFT && this.buttonpressed == false)
+                {
+                    this.movement = DIRECTION.RIGHT;
+                    this.buttonpressed = true;
+                }
+            }
 
-			this.body.Add(head.pos);
-			switch (this.movement)
-			{
-				case "UP":
-					this.head.pos.y--;
-					break;
-				case "DOWN":
-					this.head.pos.y++;
-					break;
-				case "LEFT":
-					this.head.pos.x--;
-					break;
-				case "RIGHT":
-					this.head.pos.x++;
-					break;
-			}
-			if (this.body.Count() > this.score)
-			{
-				this.body.RemoveAt(0);
-			}
+            this.body.Add(this.head);
+            switch (this.movement)
+            {
+                case DIRECTION.UP:
+                    this.head.y--;
+                    break;
+                case DIRECTION.DOWN:
+                    this.head.y++;
+                    break;
+                case DIRECTION.LEFT:
+                    this.head.x--;
+                    break;
+                case DIRECTION.RIGHT:
+                    this.head.x++;
+                    break;
+            }
+            if (this.body.Count() > this.length)
+            {
+                this.body.RemoveAt(0);
+            }
 
 
             if (gameOver)
@@ -202,7 +204,7 @@ namespace SolidSnakeCode
             {
                 for (int y = 0; y < this.window.height; y++)
                 {
-                    if (x == 0  || y == 0 || x == this.window.width - 1 ||  y == this.window.height - 1)
+                    if (x == 0 || y == 0 || x == this.window.width - 1 || y == this.window.height - 1)
                     {
                         Console.SetCursorPosition(x, y);
                         Console.Write("■");
@@ -234,9 +236,9 @@ namespace SolidSnakeCode
 
         public void draw()
         {
-			Console.SetCursorPosition(this.pos.x, this.pos.y);
-			Console.ForegroundColor = ConsoleColor.Cyan;
-			Console.Write("■");
+            Console.SetCursorPosition(this.pos.x, this.pos.y);
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write("■");
         }
 
         public bool act()
@@ -256,25 +258,42 @@ namespace SolidSnakeCode
     {
         private Window window = new Window();
         private Snake player;
+        private Wall wall;
         private DateTime timer = DateTime.Now;
 
-        private List<Object> objects = new List<Object>();
+        private static List<Object> objects = new List<Object>();
+
+        System.Timers.Timer engineTime = new System.Timers.Timer(1000/FPS);
+        private static int FPS = 2;
 
         public Engine()
         {
-            player = new Snake(window.width / 2, window.height / 2, window);
-            objects.Append(player);
+            wall = new Wall(window);
+            objects.Add(wall);
+
+            //player = new Snake(window.width / 2, window.height / 2, window);
+            //objects.Append(player);
         }
 
-        public void loop()
+        public static void loop()
         {
-            foreach (Object obj in objects)
-            {
-                if (!obj.act()) { return; }
-                obj.draw();
-            }
+            DateTime startTime = DateTime.Now;
+            DateTime fireTime = DateTime.Now;
 
-            Console.Clear();
+
+            while (true) {
+                fireTime = DateTime.Now;
+                if(fireTime.Subtract(startTime).TotalMilliseconds > 1000 / FPS) { break;  }
+
+                foreach (var obj in objects)
+                {
+                    if (!obj.act()) { return; }
+                    obj.draw();
+                }
+
+                Console.Clear();
+                startTime = DateTime.Now;
+            }
         }
 
         public void run()
@@ -416,7 +435,7 @@ namespace SolidSnakeCode
         static void Main(string[] args)
         {
             Engine e = new Engine();
-            e.run();
+            Engine.loop();
         }
     }
 }
